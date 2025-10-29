@@ -1,56 +1,60 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="Stakeholder Interview Tool – Pre-Interview Generation",
-    layout="wide"
+    page_title="Stakeholder Consensus Builder – Pre-Interview Generation",
+    layout="centered"
 )
 
+# ---- Page Title ----
 st.markdown(
-    "<h2 style='text-align: center;'>Stakeholder Interview Assistant</h2>",
+    "<h2 style='text-align:center;'>Stakeholder Consensus Builder – Pre-Interview Generation</h2>",
     unsafe_allow_html=True
 )
 st.markdown(
-    "<p style='text-align: center; color: gray;'>Upload or paste your project brief below to generate structured interview materials.</p>",
+    "<p style='text-align:center;color:gray;'>Upload a project brief or type context below to simulate interview material generation (static prototype).</p>",
     unsafe_allow_html=True
 )
+st.divider()
 
-# Create a centered layout using columns
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    uploaded_file = st.file_uploader("", type=["pdf", "docx"])
-    manual_text = st.text_area(
-        "Paste context or brief here:",
-        height=180,
-        placeholder="Type or paste your project context (e.g. client background, objectives, stakeholders)..."
+# ---- Session Memory for Chat-like Display ----
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# ---- Display previous chat messages ----
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+# ---- User Input Section ----
+uploaded_file = st.file_uploader("Upload PDF or DOCX", type=["pdf", "docx"])
+user_input = st.chat_input("Type project context here or press Enter...")
+
+# ---- On Message Submit ----
+if user_input or uploaded_file:
+    if uploaded_file:
+        filename = uploaded_file.name
+        user_message = f"I’ve uploaded a project brief: **{filename}**"
+    else:
+        user_message = user_input
+
+    # display user message
+    st.session_state.messages.append({"role": "user", "content": user_message})
+    with st.chat_message("user"):
+        st.markdown(user_message)
+
+    # ---- Mock Assistant Response ----
+    assistant_reply = (
+        "**Interview Guide (Sample)**\n"
+        "• Objective: Identify key goals, stakeholder roles, and success metrics.\n"
+        "• Stakeholders: Business Lead, Operations Manager, Technical Partner.\n"
+        "• Topics: Pain points | Data flow | Decision bottlenecks.\n\n"
+        "**Interview Slide Guide (Sample Questions)**\n"
+        "1. What are your top priorities in this initiative?\n"
+        "2. Which process currently causes the most friction?\n"
+        "3. What insights or data would help align stakeholders more effectively?"
     )
 
-    st.markdown("---")
-    if uploaded_file or manual_text:
-        if st.button("Generate Interview Guide", use_container_width=True):
-            st.markdown(
-                "<div style='background-color:#f7f9fb; padding:15px; border-radius:10px;'>"
-                "<strong>Interview Guide (Sample Output)</strong><br><br>"
-                "<ul>"
-                "<li>Clarify project goals and key stakeholders</li>"
-                "<li>Identify decision-makers and success metrics</li>"
-                "<li>Surface major challenges and timeline dependencies</li>"
-                "</ul>"
-                "</div>",
-                unsafe_allow_html=True
-            )
-            st.markdown("")
+    with st.chat_message("assistant"):
+        st.markdown(assistant_reply)
 
-            if st.button("Generate Interview Slide Guide", use_container_width=True):
-                st.markdown(
-                    "<div style='background-color:#f7f9fb; padding:15px; border-radius:10px;'>"
-                    "<strong>Slide Deck Question Set (Sample)</strong><br><br>"
-                    "<ul>"
-                    "<li>What are your top business priorities?</li>"
-                    "<li>Which areas have been hardest to automate?</li>"
-                    "<li>What would success look like six months from now?</li>"
-                    "</ul>"
-                    "</div>",
-                    unsafe_allow_html=True
-                )
-    else:
-        st.warning("Please upload a file or paste context to begin.")
+    st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
